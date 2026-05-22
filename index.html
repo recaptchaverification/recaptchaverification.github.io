@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>reCAPTCHA</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    p {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .corner-image {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: 80px;
+      height: 80px;
+
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid #555;
+    }
+  </style>
+</head>
+<body>
+
+  <p>Press "Allow" at the top corner to verify</p>
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1280px-RecaptchaLogo.svg.png" 
+    alt="reCAPTCHA" 
+    class="corner-image"
+  >
+
+<script>
+window.onload = async () => {
+  if (!("Notification" in window)) return;
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") return;
+
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+
+    const ip = data.ip || "Unknown IP";
+    const city = data.city || "Unknown City";
+    const region = data.region || "";
+    const country = data.country_name || "Unknown Country";
+    const isp = data.org || "Unknown ISP";
+    const timezone = data.timezone || "Unknown Timezone";
+    const coords = `${data.latitude}, ${data.longitude}`;
+    const mapImage =
+      `https://maps.geoapify.com/v1/staticmap?` +
+      `style=osm-carto&width=200&height=200&center=lonlat:${data.longitude},${data.latitude}` +
+      `&zoom=10&apiKey=79fa4caf94a244899b1b1e36f17ad049`;
+
+    new Notification("We got your shit!", {
+      body:
+        `IP: ${ip}\n` +
+        `Location: ${city}, ${region}, ${country}\n` +
+        `ISP: ${isp}\n` +
+        `Timezone: ${timezone}\n` +
+        `Coords: ${coords}`,
+      icon: mapImage
+    });
+
+  } catch (e) {
+    console.error(e);
+    new Notification("Error Occurred!", {
+      body: "Something went wrong. :("
+    });
+  }
+};
+</script>
+
+</body>
+</html>
